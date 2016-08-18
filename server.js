@@ -5,7 +5,11 @@ var fs = require('fs')
 var express = require('express')
 var app = express()
 var path = require('path')
+var dir = __dirname + '/uploaded/'
 
+if (!fs.existsSync(dir)) {
+  fs.mkdirSync(dir)
+}
 app.use(express.static(path.join(__dirname, 'public')))
 
 app.get('/', function (req, res) {
@@ -19,7 +23,7 @@ io.on('connection', function (socket) {
 
   ss(socket).on('transferFile', function (stream, data) {
     console.log('recebendo arquivo...', data)
-    var tmpPath = __dirname + '/uploaded/' + data.name
+    var tmpPath = dir + data.name
     stream.pipe(fs.createWriteStream(tmpPath))
 
     stream.on('error', function (err) {
