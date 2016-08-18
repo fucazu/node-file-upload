@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="/js/socketio-stream.js"></script>
+    <script src="http://localhost:3001/socket.io/socket.io.js"></script>
+    <title>Socket Upload File</title>
+</head>
+<body>
+    <p id="status"></p>
+    <input id="upload" type="file">
+
+    <progress value="0" max="100">
+    </progress>
+
+    <script type="text/javascript">
+        var socket = io.connect('http://localhost:3001')
+        var progress = document.getElementsByTagName('progress')[0]
+
+        socket.on('connect', function () {
+            document.getElementById('status').innerHTML = "Conectado!"
+            document.getElementById('upload').addEventListener("change", doUpload, false)
+        })
+
+        function doUpload (evt) {
+            var file = evt.target.files[0]
+            console.log('file: ', file)
+            var stream = ss.createStream()
+
+            var data = { name: file.name, size: file.size}
+            ss(socket).emit('transferFile', stream, data)
+            var blobStream = ss.createBlobReadStream(file)
+            var size = 0
+            blobStream.on('data', function (chunk) {
+                size += chunk.length;
+
+                var perc = Math.floor(size / file.size * 100);
+                console.log('perc:', perc)
+                progress.value = perc
+            })
+            blobStream.pipe(stream)
+        }
+    </script>
+</body>
+</html>
